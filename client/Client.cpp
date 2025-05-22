@@ -93,10 +93,23 @@ int Client::Server(string str1, string str2, bool force_register)
     if (force_register) {
         command = "REGIST";
     } else {
-        cout << "Вы хотите зарегистрироваться (R) или войти (L)? [R/L]: ";
-        getline(cin, command);
-        command = (toupper(command[0]) == 'R') ? "REGIST" : "AUTH";
-    }
+    	bool valid_input = false;
+    	while (!valid_input) {
+        	cout << "Вы хотите зарегистрироваться (R) или войти (L)? [R/L]: ";
+        	getline(cin, command);
+        	
+        	// Удаляем пробелы и преобразуем в верхний регистр
+        	command.erase(remove_if(command.begin(), command.end(), ::isspace), command.end());
+        	transform(command.begin(), command.end(), command.begin(), ::toupper);
+        	
+        	if (command == "R" || command == "L") {
+            	valid_input = true;
+        	} else {
+            	cout << "Ошибка: введите R (регистрация) или L (вход)." << endl;
+        	}
+    	}
+    	command = (command == "R") ? "REGIST" : "AUTH";
+	}
     // Отправка команды
    if (send(mySocket, command.c_str(), command.size(), 0) == -1) {
         close(mySocket);
@@ -174,7 +187,7 @@ int Client::Server(string str1, string str2, bool force_register)
     else {  	   
     	
 		string salt = response;
-		cout << "[КЛИЕНТ] Получаем соль: " << salt << endl;
+		//cout << "[КЛИЕНТ] Получаем соль: " << salt << endl;
     	string hsh = salt + password;
     	msg = MD5_hash(hsh);
     	
@@ -184,7 +197,7 @@ int Client::Server(string str1, string str2, bool force_register)
         	close(mySocket);
         	throw client_error(string("fun:Server, param:msg.\nОшибка оправки хэша"));
     	}
-    	cout << "[КЛИЕНТ] Отправляем хэш: " << buffer << endl;
+    	//cout << "[КЛИЕНТ] Отправляем хэш: " << buffer << endl;
 	
 	
 		//Проверка аутентификации
@@ -200,7 +213,7 @@ int Client::Server(string str1, string str2, bool force_register)
         	throw client_error("Ошибка аутентификации");
     	}
     	
-    	cout << "Мы получаем ответ: " << buffer << endl;
+    	//cout << "Мы получаем ответ: " << buffer << endl;
      	buffer[rc] = '\0';
 	
 		// Отправка строк от пользователя
